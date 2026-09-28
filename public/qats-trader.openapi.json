@@ -1,0 +1,1623 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "QATS Trader API",
+    "version": "1.0.0",
+    "description": "Trader-only REST reference. No payments, payouts, administration or provider credentials. Bearer authentication, not Binance/Bybit wire compatibility. Some response examples are abbreviated."
+  },
+  "servers": [
+    {
+      "url": "https://dev.prop.qats.us/api/v1",
+      "description": "QATS DEV; simulation is determined by account and feed"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "TradingToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "qats_trade_<64 hex>"
+      }
+    }
+  },
+  "paths": {
+    "/trading/account": {
+      "get": {
+        "operationId": "account",
+        "tags": [
+          "Account"
+        ],
+        "summary": "Account & risk",
+        "description": "Balance, equity, accepted rules, trading access and risk summary. Read the accepted account rules; do not hard-code challenge targets or capacity. This response example is abbreviated.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "account": {
+                    "id": "QEV-example",
+                    "status": "active"
+                  },
+                  "rules": {
+                    "allowedSymbols": [
+                      "BTCUSDT"
+                    ]
+                  },
+                  "counts": {
+                    "positions": 0,
+                    "workingOrders": 0,
+                    "executions": 0
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/state": {
+      "get": {
+        "operationId": "state",
+        "tags": [
+          "Account"
+        ],
+        "summary": "Account state",
+        "description": "Account, positions and orders in one response. ",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "account": {
+                    "id": "QEV-example"
+                  },
+                  "positions": [],
+                  "orders": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/market": {
+      "get": {
+        "operationId": "market",
+        "tags": [
+          "Market data"
+        ],
+        "summary": "Ticker & order book",
+        "description": "The authoritative quote, book and funding data for your account. Book sizes use QATS lots. Order/position quantity uses base-asset units. Inspect source and simulated; a simulated quote is not an exchange fill.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "description": "Allowed perpetual symbol, e.g. BTCUSDT; see rules.allowedSymbols.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "snapshot": {
+                    "symbol": "BTCUSDT",
+                    "last": 65000,
+                    "bid": 64999.9,
+                    "ask": 65000.1,
+                    "tickSize": 0.1,
+                    "source": "qats-server-simulation",
+                    "simulated": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/bars": {
+      "get": {
+        "operationId": "bars",
+        "tags": [
+          "Market data"
+        ],
+        "summary": "Candlesticks",
+        "description": "Candles from the account’s venue and price path. Availability depends on the configured feed and instrument history.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "description": "Allowed perpetual symbol, e.g. BTCUSDT; see rules.allowedSymbols.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "interval",
+            "in": "query",
+            "required": false,
+            "description": "1, 5, 15, 60, 240 or D.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Requested bar count, subject to server bounds.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/stream": {
+      "get": {
+        "operationId": "stream",
+        "tags": [
+          "Market data"
+        ],
+        "summary": "Market stream (SSE)",
+        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "description": "Allowed perpetual symbol, e.g. BTCUSDT; see rules.allowedSymbols.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/orders": {
+      "post": {
+        "operationId": "place_order",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Place order",
+        "description": "Submit an order through the same risk checks and execution engine as the terminal. 201: immediate fill. 202: resting order. Example price is illustrative; check quotes, precision and capacity before submitting.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id",
+                  "order": {
+                    "id": "ord_example",
+                    "status": "working",
+                    "quantity": 0.001
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Immediate execution"
+          },
+          "202": {
+            "description": "Resting order accepted"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "description": "Allowed perpetual symbol, e.g. BTCUSDT; see rules.allowedSymbols."
+                  },
+                  "side": {
+                    "type": "string",
+                    "description": "BUY or SELL."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "MARKET, LIMIT, STOP_MARKET or STOP_LIMIT."
+                  },
+                  "quantity": {
+                    "type": "number",
+                    "description": "Base-asset units, matching the instrument step. Use quantity or lots, not both."
+                  },
+                  "lots": {
+                    "type": "number",
+                    "description": "Alternative QATS-lot sizing; required if quantity is omitted."
+                  },
+                  "price": {
+                    "type": "number",
+                    "description": "Limit price or stop trigger, required for non-market orders."
+                  },
+                  "limitPrice": {
+                    "type": "number",
+                    "description": "Execution limit for STOP_LIMIT."
+                  },
+                  "timeInForce": {
+                    "type": "string",
+                    "description": "GTC, IOC or POST_ONLY, subject to order/plan restrictions."
+                  },
+                  "reduceOnly": {
+                    "type": "boolean",
+                    "description": "Only reduce exposure; cannot open or reverse."
+                  },
+                  "bracket": {
+                    "type": "object",
+                    "description": "{ enabled, stopTicks, targetTicks, trailTicks }; distances in ticks."
+                  },
+                  "oco": {
+                    "type": "object",
+                    "description": "Optional entry peer. Both legs must rest; first fill cancels its peer."
+                  }
+                },
+                "required": [
+                  "symbol",
+                  "side",
+                  "type"
+                ]
+              },
+              "example": {
+                "symbol": "BTCUSDT",
+                "side": "BUY",
+                "type": "LIMIT",
+                "quantity": 0.001,
+                "price": 60000,
+                "timeInForce": "GTC"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancel_all",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Cancel entry orders",
+        "description": "Cancel all working entry orders on this account. Position stop-loss and take-profit protection remains.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      },
+      "get": {
+        "operationId": "orders",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Order history",
+        "description": "Up to 500 recent orders, newest first. Bounded recent history; no cursor pagination or full-history guarantee.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "description": "Optional exact status: working, filled, canceled or rejected.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "orders": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/orders/{id}": {
+      "patch": {
+        "operationId": "amend_order",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Amend order",
+        "description": "Change a working order. Quantity may be reduced. Ownership, precision and order state are checked.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "price": {
+                    "type": "number",
+                    "description": "New price."
+                  },
+                  "limitPrice": {
+                    "type": "number",
+                    "description": "New stop-limit execution price."
+                  },
+                  "quantity": {
+                    "type": "number",
+                    "description": "Base-asset units, matching the instrument step. Use quantity or lots, not both."
+                  },
+                  "trailTicks": {
+                    "type": "number",
+                    "description": "Trailing distance where supported."
+                  }
+                }
+              },
+              "example": {
+                "price": 59000
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "cancel_order",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Cancel order",
+        "description": "Cancel a working order and linked OCO/bracket peer where applicable. Cancellation does not prove an order had no fills. Reconcile executions.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      },
+      "get": {
+        "operationId": "order",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Get order",
+        "description": "Read one order on your account. ",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "order": {
+                    "id": "ord_example",
+                    "symbol": "BTCUSDT",
+                    "quantity": 0.001,
+                    "lots": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/executions": {
+      "get": {
+        "operationId": "executions",
+        "tags": [
+          "Trade"
+        ],
+        "summary": "Trade history",
+        "description": "Up to 500 fills, newest first, with fees and realized P&L. No cursor pagination. Timestamp filtering does not guarantee gap-free archival ingestion.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "since",
+            "in": "query",
+            "required": false,
+            "description": "ISO-8601 UTC timestamp; executedAt must be strictly later.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "executions": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/positions": {
+      "get": {
+        "operationId": "positions",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Open positions",
+        "description": "Open positions and protective orders. ",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "positions": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/positions/{id}": {
+      "get": {
+        "operationId": "position",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Get position",
+        "description": "Read one position in base-asset units, with lots alongside. ",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "position": {
+                    "id": "pos_example",
+                    "symbol": "BTCUSDT",
+                    "quantity": 0.001,
+                    "lots": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/positions/{id}/protection": {
+      "post": {
+        "operationId": "protection",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Set TP / SL",
+        "description": "Set stop-loss, take-profit or trailing protection. All normal protection validation remains in force.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stopPrice": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Stop price; null removes it."
+                  },
+                  "targetPrice": {
+                    "type": "number",
+                    "nullable": true,
+                    "description": "Target price; null removes it."
+                  },
+                  "trailTicks": {
+                    "type": "number",
+                    "description": "Trailing stop distance in ticks."
+                  }
+                }
+              },
+              "example": {
+                "stopPrice": 58000,
+                "targetPrice": 68000
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trading/positions/{id}/close": {
+      "post": {
+        "operationId": "close",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Close position",
+        "description": "Reduce or close a position. Omit quantity to close the whole position. A limit close may rest; inspect remaining exposure.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Immediate execution"
+          },
+          "202": {
+            "description": "Resting order accepted"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        },
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "number",
+                    "description": "Base-asset units, matching the instrument step. Use quantity or lots, not both."
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "MARKET (default) or LIMIT."
+                  },
+                  "price": {
+                    "type": "number",
+                    "description": "Required for LIMIT."
+                  }
+                }
+              },
+              "example": {
+                "type": "MARKET"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trading/positions/{id}/reverse": {
+      "post": {
+        "operationId": "reverse",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Reverse position",
+        "description": "Submit an opposite market order of twice the current size. Reversal must pass new-entry risk checks. It is not reduce-only.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Resource ID on the account bound to your token.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Immediate execution"
+          },
+          "202": {
+            "description": "Resting order accepted"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/flatten": {
+      "post": {
+        "operationId": "flatten",
+        "tags": [
+          "Positions"
+        ],
+        "summary": "Flatten account",
+        "description": "Request closure of all positions and cancellation of all orders. Check outcomes and refresh state. Partial execution/provider failure can leave residual exposure.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": false,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    },
+    "/trading/commands": {
+      "post": {
+        "operationId": "commands",
+        "tags": [
+          "Recovery"
+        ],
+        "summary": "Submit command",
+        "description": "Alternative command envelope for order and position actions. Idempotency-Key is mandatory: 1–120 ASCII letters, digits, underscores or hyphens.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,120}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Immediate execution"
+          },
+          "202": {
+            "description": "Resting order accepted"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "accountId": {
+                    "type": "string",
+                    "description": "Must equal your token’s account."
+                  },
+                  "action": {
+                    "type": "string",
+                    "description": "place, modify, cancel, cancel_all, protection or flatten."
+                  },
+                  "order": {
+                    "type": "object",
+                    "description": "Order fields for place."
+                  },
+                  "orderId": {
+                    "type": "string",
+                    "description": "Required for modify/cancel."
+                  },
+                  "positionId": {
+                    "type": "string",
+                    "description": "Required for protection."
+                  },
+                  "changes": {
+                    "type": "object",
+                    "description": "Fields for modify."
+                  },
+                  "protection": {
+                    "type": "object",
+                    "description": "Protection fields."
+                  }
+                },
+                "required": [
+                  "accountId",
+                  "action"
+                ]
+              },
+              "example": {
+                "accountId": "QEV-example",
+                "action": "cancel_all"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trading/commands/{id}": {
+      "get": {
+        "operationId": "command_status",
+        "tags": [
+          "Recovery"
+        ],
+        "summary": "Confirm command",
+        "description": "Check a recorded result after a timeout or lost response. confirmed includes httpStatus and result. unconfirmed is not proof of failure. Preserve the original ID and payload; never retry an uncertain trade under a fresh ID.",
+        "security": [
+          {
+            "TradingToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Original Idempotency-Key, on the same connection.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response; examples are abbreviated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "status": "unconfirmed",
+                  "commandId": "your-command-id"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Invalid/expired token"
+          },
+          "403": {
+            "description": "Scope or access denied"
+          },
+          "404": {
+            "description": "Resource not on this account"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "422": {
+            "description": "Trading rule rejection"
+          },
+          "429": {
+            "description": "Rate limit"
+          },
+          "503": {
+            "description": "Service unavailable; reconcile uncertain writes"
+          }
+        }
+      }
+    }
+  }
+}

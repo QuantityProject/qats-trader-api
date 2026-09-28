@@ -1,0 +1,361 @@
+{
+  "info": {
+    "name": "QATS Trader API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Set token locally as a secret. Do not share populated credentials. Set commandId once per logical write and keep it for recovery."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://dev.prop.qats.us/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "resourceId",
+      "value": "REPLACE_WITH_OWN_RESOURCE_ID"
+    },
+    {
+      "key": "commandId",
+      "value": "REPLACE_WITH_PERSISTED_UNIQUE_COMMAND_ID"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Account & risk",
+      "request": {
+        "method": "GET",
+        "description": "Balance, equity, accepted rules, trading access and risk summary. Read the accepted account rules; do not hard-code challenge targets or capacity. This response example is abbreviated.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/account"
+      }
+    },
+    {
+      "name": "Account state",
+      "request": {
+        "method": "GET",
+        "description": "Account, positions and orders in one response. ",
+        "header": [],
+        "url": "{{baseUrl}}/trading/state"
+      }
+    },
+    {
+      "name": "Ticker & order book",
+      "request": {
+        "method": "GET",
+        "description": "The authoritative quote, book and funding data for your account. Book sizes use QATS lots. Order/position quantity uses base-asset units. Inspect source and simulated; a simulated quote is not an exchange fill.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/market?symbol=BTCUSDT"
+      }
+    },
+    {
+      "name": "Candlesticks",
+      "request": {
+        "method": "GET",
+        "description": "Candles from the account’s venue and price path. Availability depends on the configured feed and instrument history.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/bars?symbol=BTCUSDT"
+      }
+    },
+    {
+      "name": "Market stream (SSE)",
+      "request": {
+        "method": "GET",
+        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/stream?symbol=BTCUSDT"
+      }
+    },
+    {
+      "name": "Place order",
+      "request": {
+        "method": "POST",
+        "description": "Submit an order through the same risk checks and execution engine as the terminal. 201: immediate fill. 202: resting order. Example price is illustrative; check quotes, precision and capacity before submitting.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"symbol\": \"BTCUSDT\",\n  \"side\": \"BUY\",\n  \"type\": \"LIMIT\",\n  \"quantity\": 0.001,\n  \"price\": 60000,\n  \"timeInForce\": \"GTC\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Amend order",
+      "request": {
+        "method": "PATCH",
+        "description": "Change a working order. Quantity may be reduced. Ownership, precision and order state are checked.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/orders/{{resourceId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"price\": 59000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Cancel order",
+      "request": {
+        "method": "DELETE",
+        "description": "Cancel a working order and linked OCO/bracket peer where applicable. Cancellation does not prove an order had no fills. Reconcile executions.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/orders/{{resourceId}}"
+      }
+    },
+    {
+      "name": "Cancel entry orders",
+      "request": {
+        "method": "DELETE",
+        "description": "Cancel all working entry orders on this account. Position stop-loss and take-profit protection remains.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/orders"
+      }
+    },
+    {
+      "name": "Order history",
+      "request": {
+        "method": "GET",
+        "description": "Up to 500 recent orders, newest first. Bounded recent history; no cursor pagination or full-history guarantee.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/orders"
+      }
+    },
+    {
+      "name": "Get order",
+      "request": {
+        "method": "GET",
+        "description": "Read one order on your account. ",
+        "header": [],
+        "url": "{{baseUrl}}/trading/orders/{{resourceId}}"
+      }
+    },
+    {
+      "name": "Trade history",
+      "request": {
+        "method": "GET",
+        "description": "Up to 500 fills, newest first, with fees and realized P&L. No cursor pagination. Timestamp filtering does not guarantee gap-free archival ingestion.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/executions"
+      }
+    },
+    {
+      "name": "Open positions",
+      "request": {
+        "method": "GET",
+        "description": "Open positions and protective orders. ",
+        "header": [],
+        "url": "{{baseUrl}}/trading/positions"
+      }
+    },
+    {
+      "name": "Get position",
+      "request": {
+        "method": "GET",
+        "description": "Read one position in base-asset units, with lots alongside. ",
+        "header": [],
+        "url": "{{baseUrl}}/trading/positions/{{resourceId}}"
+      }
+    },
+    {
+      "name": "Set TP / SL",
+      "request": {
+        "method": "POST",
+        "description": "Set stop-loss, take-profit or trailing protection. All normal protection validation remains in force.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/positions/{{resourceId}}/protection",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stopPrice\": 58000,\n  \"targetPrice\": 68000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Close position",
+      "request": {
+        "method": "POST",
+        "description": "Reduce or close a position. Omit quantity to close the whole position. A limit close may rest; inspect remaining exposure.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/positions/{{resourceId}}/close",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"MARKET\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Reverse position",
+      "request": {
+        "method": "POST",
+        "description": "Submit an opposite market order of twice the current size. Reversal must pass new-entry risk checks. It is not reduce-only.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/positions/{{resourceId}}/reverse",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Flatten account",
+      "request": {
+        "method": "POST",
+        "description": "Request closure of all positions and cancellation of all orders. Check outcomes and refresh state. Partial execution/provider failure can leave residual exposure.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/flatten",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Submit command",
+      "request": {
+        "method": "POST",
+        "description": "Alternative command envelope for order and position actions. Idempotency-Key is mandatory: 1–120 ASCII letters, digits, underscores or hyphens.",
+        "header": [
+          {
+            "key": "Idempotency-Key",
+            "value": "{{commandId}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{baseUrl}}/trading/commands",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"QEV-example\",\n  \"action\": \"cancel_all\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Confirm command",
+      "request": {
+        "method": "GET",
+        "description": "Check a recorded result after a timeout or lost response. confirmed includes httpStatus and result. unconfirmed is not proof of failure. Preserve the original ID and payload; never retry an uncertain trade under a fresh ID.",
+        "header": [],
+        "url": "{{baseUrl}}/trading/commands/{{commandId}}"
+      }
+    }
+  ]
+}
