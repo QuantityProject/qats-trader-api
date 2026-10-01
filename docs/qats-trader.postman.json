@@ -7,7 +7,7 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "https://dev.prop.qats.us/api/v1"
+      "value": "https://prop.qats.us/api/v1"
     },
     {
       "key": "token",
@@ -73,7 +73,7 @@
       "name": "Market stream (SSE)",
       "request": {
         "method": "GET",
-        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
+        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Quote frames, plus an account frame scoped to the token’s own account. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
         "header": [],
         "url": "{{baseUrl}}/trading/stream?symbol=BTCUSDT"
       }
@@ -199,7 +199,7 @@
       "name": "Open positions",
       "request": {
         "method": "GET",
-        "description": "Open positions and protective orders. ",
+        "description": "Open positions and protective orders. On an account that trades on your own Bybit account the answer is the mirror QATS keeps of the exchange, marked source: bybit with the time it was taken; fills are in Bybit’s own history and /trading/executions says so.",
         "header": [],
         "url": "{{baseUrl}}/trading/positions"
       }

@@ -7,8 +7,12 @@
   },
   "servers": [
     {
+      "url": "https://prop.qats.us/api/v1",
+      "description": "QATS. Use a token created in your QATS account settings; simulation is determined by account and feed"
+    },
+    {
       "url": "https://dev.prop.qats.us/api/v1",
-      "description": "QATS DEV; simulation is determined by account and feed"
+      "description": "QATS DEV, for testing with a token created on DEV"
     }
   ],
   "components": {
@@ -308,7 +312,7 @@
           "Market data"
         ],
         "summary": "Market stream (SSE)",
-        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
+        "description": "Subscribe to market events over streaming HTTP. Content-Type: text/event-stream. Quote frames, plus an account frame scoped to the token’s own account. Not WebSocket and not a private order/fill stream. Use an HTTP client that supports the Authorization header. Reconnect with backoff and refresh state.",
         "security": [
           {
             "TradingToken": []
@@ -380,8 +384,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -524,8 +528,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -662,8 +666,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -766,8 +770,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -955,7 +959,7 @@
           "Positions"
         ],
         "summary": "Open positions",
-        "description": "Open positions and protective orders. ",
+        "description": "Open positions and protective orders. On an account that trades on your own Bybit account the answer is the mirror QATS keeps of the exchange, marked source: bybit with the time it was taken; fills are in Bybit’s own history and /trading/executions says so.",
         "security": [
           {
             "TradingToken": []
@@ -1099,8 +1103,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -1204,8 +1208,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -1312,8 +1316,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -1384,8 +1388,8 @@
           {
             "name": "Idempotency-Key",
             "in": "header",
-            "required": false,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "required": true,
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"
@@ -1451,7 +1455,7 @@
             "name": "Idempotency-Key",
             "in": "header",
             "required": true,
-            "description": "Always supply your own ID for safe retries. Required by /commands; action routes generate one if absent.",
+            "description": "Your own unique command ID. Required on every write; a write without one is refused.",
             "schema": {
               "type": "string",
               "pattern": "^[a-zA-Z0-9_-]{1,120}$"

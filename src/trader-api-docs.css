@@ -2,3 +2,29 @@
 .api-brand img{filter:brightness(0) invert(1)}.api-light .api-brand img{filter:brightness(0)}.api-sidebar nav h2{line-height:1.5;padding:0}.api-docs .api-key-form button[role=combobox]{width:100%}
 
 .api-syntax-string{color:#94c8b4}.api-syntax-number{color:#e1c28c}.api-syntax-keyword{color:#a6baff}.api-light .api-syntax-string{color:#18734e}.api-light .api-syntax-number{color:#986b1e}.api-light .api-syntax-keyword{color:#315ec2}
+
+/* The reference page carries its own palette, but the controls it borrows from the app (the select,
+   its listbox, its scrollbars) are written against the platform tokens. Unmapped, they followed the
+   app's theme instead of this page's and rendered a white field on a dark page. Mapping the tokens
+   here makes every borrowed control follow the page, in both of its themes. */
+.api-docs {
+  --surface: var(--api-panel); --surface-hover: var(--api-side); --surface-strong: var(--api-panel);
+  --border: var(--api-border); --border-strong: var(--api-border);
+  --text: var(--api-text); --text-secondary: var(--api-muted); --text-tertiary: var(--api-muted);
+  --platform-panel: var(--api-panel); --platform-raised: var(--api-panel); --platform-sidebar: var(--api-side);
+  --platform-line: var(--api-border); --platform-muted: var(--api-muted);
+  --qats-accent: var(--api-accent); --qats-accent-text: var(--api-accent);
+  --qats-accent-border: color-mix(in srgb, var(--api-accent) 55%, transparent);
+  --shadow-float: 0 18px 44px rgba(0, 0, 0, .45);
+  --error: #ee8888;
+}
+.api-docs .qats-select__trigger { background: var(--api-panel); border-color: var(--api-border); color: var(--api-text); }
+.api-docs .qats-select__menu, .api-docs .qats-select__options { background: var(--api-panel); border-color: var(--api-border); color: var(--api-text); }
+.api-docs .qats-select__options > button:hover, .api-docs .qats-select__options > button.is-active, .api-docs .qats-select__options > button.is-selected { background: color-mix(in srgb, var(--api-accent) 16%, transparent); color: var(--api-text); }
+/* A disabled action still has to be readable: half-opacity over a solid accent turned the label to
+   grey on grey. */
+.api-docs .api-primary:disabled { background: color-mix(in srgb, var(--api-accent) 30%, var(--api-panel)); color: var(--api-text); opacity: 1; }
+.api-docs .api-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--api-accent) 86%, #fff); }
+.api-docs button:hover:not(:disabled) { border-color: var(--api-accent); color: var(--api-text); }
+.api-docs .api-key-form { align-items: start; }
+.api-docs .api-key-form > button { justify-self: start; min-width: 200px; }
